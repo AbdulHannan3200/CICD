@@ -1,0 +1,20 @@
+on:
+  workflow_dispatch: # manually trigger
+jobs:
+  renew-ssl:
+    runs-on: self-hosted # runs on your local PC runner
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+      - name: Generate self-signed certificate
+        run: |
+          mkdir -p nginx/ssl
+          openssl req -x509 -nodes -days 365 \
+            -newkey rsa:2048 \
+            -keyout nginx/ssl/local.key \
+            -out nginx/ssl/local.crt \
+            -subj "/C=PK/ST=State/L=City/O=Local/CN=localhost"
+      - name: Restart Nginx Docker container
+        run: |
+          docker-compose -f docker-compose.yml down
+          docker-compose -f docker-compose.yml up -d
